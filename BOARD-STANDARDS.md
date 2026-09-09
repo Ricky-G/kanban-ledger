@@ -341,7 +341,8 @@ Column rules:
   without regard to case, at most 40 characters, and contain no control characters or HTML comment
   markers.
 - The `columns` order is the board order. Reordering does not change card order within a column.
-- Rename columns through **People & labels** so LedgerBoard updates the matching board heading.
+- Rename columns through **People & labels** or directly from the board header so LedgerBoard updates
+  the matching configured name and Markdown heading.
 - Before removing a non-empty column, move all of its tickets to another configured column.
 
 People rules:

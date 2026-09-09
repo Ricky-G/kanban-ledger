@@ -583,12 +583,41 @@
       }
 
       .column-header {
+        position: relative;
         min-height: 62px;
         display: flex;
         align-items: flex-start;
         gap: 9px;
         padding: 12px 12px 10px;
+        background:
+          linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--column-color) 12%, var(--surface-raised)),
+            var(--surface-raised) 72%
+          );
         border-bottom: 1px solid var(--line);
+        transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .column-header:hover {
+        border-bottom-color: var(--line);
+        background:
+          linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--column-color) 12%, var(--surface-raised)),
+            var(--surface-raised) 72%
+          );
+      }
+
+      .column-header[data-editing="true"] {
+        border-bottom-color: color-mix(in srgb, var(--column-color) 62%, var(--line));
+        box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--column-color) 68%, transparent);
+        background:
+          linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--column-color) 22%, var(--surface-raised)),
+            color-mix(in srgb, var(--column-color) 7%, var(--surface-raised)) 72%
+          );
       }
 
       .column-index {
@@ -607,6 +636,170 @@
         margin: 0 0 2px;
         font-size: 15px;
         font-weight: 680;
+      }
+
+      .column-title-edit {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        max-width: 100%;
+        min-width: 0;
+        padding: 2px 5px;
+        color: inherit;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        cursor: text;
+        font: inherit;
+        font-weight: inherit;
+        line-height: inherit;
+        text-align: left;
+        transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+      }
+
+      .column-title-edit:hover {
+        color: var(--ink);
+        background: transparent;
+        border-color: transparent;
+      }
+
+      .column-title-text {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .column-edit-cue {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        width: 21px;
+        height: 21px;
+        padding: 0;
+        color: color-mix(in srgb, var(--column-color) 82%, var(--ink));
+        background: color-mix(in srgb, var(--column-color) 13%, var(--surface));
+        border: 1px solid color-mix(in srgb, var(--column-color) 28%, var(--line));
+        border-radius: 50%;
+        box-shadow: 0 2px 5px color-mix(in srgb, var(--column-color) 14%, transparent);
+        transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+      }
+
+      .column-edit-cue-icon {
+        display: block;
+        font-size: 13px;
+        line-height: 1;
+        transform: rotate(-10deg);
+        transition: transform 160ms ease;
+      }
+
+      .column-title-edit:hover .column-edit-cue,
+      .column-title-edit:focus-visible .column-edit-cue {
+        color: var(--surface);
+        background: var(--column-color);
+        border-color: var(--column-color);
+        box-shadow:
+          0 0 0 4px color-mix(in srgb, var(--column-color) 12%, transparent),
+          0 4px 10px color-mix(in srgb, var(--column-color) 28%, transparent);
+        transform: translateY(-1px) scale(1.06);
+      }
+
+      .column-title-edit:hover .column-title-text,
+      .column-title-edit:focus-visible .column-title-text {
+        text-decoration: underline;
+        text-decoration-color: color-mix(in srgb, var(--column-color) 68%, transparent);
+        text-decoration-style: dotted;
+        text-underline-offset: 4px;
+      }
+
+      .column-title-edit:hover .column-edit-cue-icon,
+      .column-title-edit:focus-visible .column-edit-cue-icon {
+        transform: rotate(0deg) scale(1.08);
+      }
+
+      .column-title-editor {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .column-header-edit {
+        flex: 1 1 auto;
+        min-width: 0;
+        height: 28px;
+        padding: 3px 6px;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid color-mix(in srgb, var(--column-color) 70%, var(--focus));
+        border-radius: 3px;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--column-color) 14%, transparent);
+        font: inherit;
+        font-weight: 680;
+        transition: border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .column-header-edit:focus {
+        border-color: var(--column-color);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--column-color) 24%, transparent);
+      }
+
+      .column-header-edit[aria-invalid="true"] {
+        border-color: var(--danger);
+        box-shadow: 0 0 0 1px var(--danger);
+      }
+
+      .column-edit-actions {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 3px;
+      }
+
+      .column-edit-action {
+        width: 27px;
+        height: 27px;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        color: var(--column-color);
+        background: color-mix(in srgb, var(--column-color) 12%, var(--surface));
+        border: 1px solid color-mix(in srgb, var(--column-color) 35%, var(--line));
+        border-radius: 4px;
+        font-size: 15px;
+        font-weight: 760;
+        line-height: 1;
+        transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+      }
+
+      .column-edit-action:hover,
+      .column-edit-action:focus-visible {
+        color: var(--ink);
+        background: color-mix(in srgb, var(--column-color) 25%, var(--surface));
+        border-color: color-mix(in srgb, var(--column-color) 64%, var(--line));
+        transform: translateY(-1px);
+      }
+
+      .column-edit-cancel {
+        color: var(--ink-soft);
+      }
+
+      .column-edit-cancel:hover,
+      .column-edit-cancel:focus-visible {
+        color: var(--danger);
+        background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+        border-color: color-mix(in srgb, var(--danger) 40%, var(--line));
+      }
+
+      .column-edit-shortcut {
+        display: block;
+        margin: 3px 0 4px 5px;
+        color: color-mix(in srgb, var(--column-color) 70%, var(--ink-faint));
+        font-family: Bahnschrift, "Arial Narrow", sans-serif;
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
       }
 
       .column-title-block p {
@@ -1020,6 +1213,14 @@
 
       .mobile-column-tabs {
         display: none;
+      }
+
+      .column-edit-validation-message {
+        margin: 10px 0 0;
+        color: var(--danger);
+        font-size: 12px;
+        font-weight: 650;
+        line-height: 1.45;
       }
 
       .settings-view {
@@ -2936,6 +3137,7 @@
           </div>
 
           <div class="mobile-column-tabs" id="mobileColumnTabs" aria-label="Board columns"></div>
+          <p class="column-edit-validation-message" id="columnEditValidationMessage" role="alert" hidden></p>
 
           <div class="board-canvas" id="boardCanvas">
             <div class="welcome-panel" id="welcomePanel">
@@ -5931,6 +6133,9 @@
           currentView: "board",
           mobileColumn: "doing",
           editingCardId: null,
+          editingColumnId: null,
+          editingColumnValue: "",
+          editingColumnError: "",
           draggedCardId: null,
           suppressCardClick: false,
           analytics: null,
@@ -5971,6 +6176,7 @@
             "columnList", "addColumnButton", "discardColumnChangesButton", "columnsLimitMessage",
             "columnValidationMessage", "columnRemovalDialog", "columnRemovalMessage", "columnRemovalTargetField",
             "columnRemovalTarget", "cancelColumnRemovalButton", "confirmColumnRemovalButton",
+            "columnEditValidationMessage",
             "labelRemovalDialog", "labelRemovalMessage", "cancelLabelRemovalButton", "confirmLabelRemovalButton",
             "statusMessage", "unsavedIndicator", "lastLoadedLabel", "cardDialog", "cardForm",
             "cardDialogEyebrow", "cardDialogTitle", "cardId", "cardTitle", "cardDescription",
@@ -6197,6 +6403,10 @@
           state.saveQueued = false;
           state.pendingSave = null;
           state.duplicateSources = {};
+          state.editingColumnId = null;
+          state.editingColumnValue = "";
+          state.editingColumnError = "";
+          clearColumnHeaderValidation();
           state.columnEditBaseline = null;
           state.pendingColumnRemoval = null;
           state.pendingLabelRemovalId = null;
@@ -6264,6 +6474,10 @@
           state.saveInFlight = false;
           state.pendingSave = null;
           state.duplicateSources = {};
+          state.editingColumnId = null;
+          state.editingColumnValue = "";
+          state.editingColumnError = "";
+          clearColumnHeaderValidation();
           elements.kanbanBoard.replaceChildren();
           elements.mobileColumnTabs.replaceChildren();
           elements.kanbanBoard.style.removeProperty("grid-template-columns");
@@ -6334,13 +6548,87 @@
 
             const header = document.createElement("header");
             header.className = "column-header";
+            header.dataset.editing = String(state.editingColumnId === column.id);
             const index = document.createElement("span");
             index.className = "column-index";
             index.textContent = String(columnIndex + 1).padStart(2, "0");
             const titleBlock = document.createElement("div");
             titleBlock.className = "column-title-block";
             const title = document.createElement("h2");
-            title.textContent = column.label;
+            if (state.editingColumnId === column.id) {
+              const editor = document.createElement("span");
+              editor.className = "column-title-editor";
+              const input = document.createElement("input");
+              input.type = "text";
+              input.className = "column-header-edit";
+              input.value = state.editingColumnValue;
+              input.maxLength = model.MAX_COLUMN_NAME_LENGTH;
+              input.setAttribute("aria-label", `Edit ${column.label} column name`);
+              input.setAttribute("aria-describedby", "columnEditValidationMessage");
+              input.setAttribute("aria-invalid", String(Boolean(state.editingColumnError)));
+              input.addEventListener("input", () => updateColumnHeaderEdit(input, column.id));
+              input.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  commitColumnHeaderEdit(input, column.id, { restoreFocus: true });
+                } else if (event.key === "Escape") {
+                  event.preventDefault();
+                  cancelColumnHeaderEdit(column.id);
+                }
+              });
+              const actions = document.createElement("span");
+              actions.className = "column-edit-actions";
+              const saveButton = document.createElement("button");
+              saveButton.type = "button";
+              saveButton.className = "column-edit-action column-edit-confirm";
+              saveButton.textContent = "✓";
+              saveButton.title = "Save column name";
+              saveButton.setAttribute("aria-label", "Save column name");
+              saveButton.addEventListener("click", () => {
+                commitColumnHeaderEdit(input, column.id, { restoreFocus: true });
+              });
+              const cancelButton = document.createElement("button");
+              cancelButton.type = "button";
+              cancelButton.className = "column-edit-action column-edit-cancel";
+              cancelButton.textContent = "×";
+              cancelButton.title = "Cancel column name edit";
+              cancelButton.setAttribute("aria-label", "Cancel column name edit");
+              cancelButton.addEventListener("click", () => cancelColumnHeaderEdit(column.id));
+              actions.append(saveButton, cancelButton);
+              editor.append(input, actions);
+              editor.addEventListener("focusout", (event) => {
+                const nextTarget = event.relatedTarget;
+                const stayingInsideEditor = nextTarget instanceof Node && editor.contains(nextTarget);
+                if (state.editingColumnId === column.id && !stayingInsideEditor) {
+                  commitColumnHeaderEdit(input, column.id);
+                }
+              });
+              title.append(editor);
+              const shortcut = document.createElement("span");
+              shortcut.className = "column-edit-shortcut";
+              shortcut.textContent = "Enter to save · Esc to cancel";
+              shortcut.setAttribute("aria-hidden", "true");
+              titleBlock.append(title, shortcut);
+            } else {
+              const editButton = document.createElement("button");
+              editButton.type = "button";
+              editButton.className = "column-title-edit";
+              editButton.title = `Edit ${column.label} column name`;
+              editButton.setAttribute("aria-label", `Edit ${column.label} column name`);
+              editButton.addEventListener("click", () => startColumnHeaderEdit(column.id));
+              const label = document.createElement("span");
+              label.className = "column-title-text";
+              label.textContent = column.label;
+              const cue = document.createElement("span");
+              cue.className = "column-edit-cue";
+              cue.setAttribute("aria-hidden", "true");
+              const cueIcon = document.createElement("span");
+              cueIcon.className = "column-edit-cue-icon";
+              cueIcon.textContent = "✎";
+              cue.append(cueIcon);
+              editButton.append(label, cue);
+              title.append(editButton);
+            }
             const description = document.createElement("p");
             description.textContent = `Workflow stage ${columnIndex + 1} of ${state.board.columns.length}`;
             titleBlock.append(title, description);
@@ -6392,6 +6680,150 @@
           });
 
           updateStats();
+        }
+
+        function startColumnHeaderEdit(columnId) {
+          const column = state.board?.columns.find((item) => item.id === columnId);
+          if (!column) {
+            showError(new Error("Could not find the selected board column. Reload the board and try again."));
+            return;
+          }
+
+          state.editingColumnId = columnId;
+          state.editingColumnValue = column.label;
+          state.editingColumnError = "";
+          clearColumnHeaderValidation();
+          renderBoard();
+          const input = document.querySelector(
+            `.kanban-column[data-column="${columnId}"] .column-header-edit`,
+          );
+          input?.focus();
+          input?.select();
+        }
+
+        function updateColumnHeaderEdit(input, columnId) {
+          if (state.editingColumnId !== columnId) {
+            return;
+          }
+          state.editingColumnValue = input.value;
+          const error = columnHeaderValidationError(columnId, input.value);
+          state.editingColumnError = error;
+          input.setAttribute("aria-invalid", String(Boolean(error)));
+          if (error) {
+            showColumnHeaderValidation(error);
+          } else {
+            clearColumnHeaderValidation();
+          }
+        }
+
+        function columnHeaderValidationError(columnId, value) {
+          const candidate = {
+            ...state.config,
+            columns: state.config.columns.map((column) => (
+              column.id === columnId ? { ...column, name: value } : column
+            )),
+          };
+          try {
+            model.validateConfig(candidate);
+            return "";
+          } catch (error) {
+            return error.message || String(error);
+          }
+        }
+
+        function commitColumnHeaderEdit(input, columnId, { restoreFocus = false } = {}) {
+          if (state.editingColumnId !== columnId) {
+            return true;
+          }
+          const column = state.config.columns.find((item) => item.id === columnId);
+          if (!column) {
+            cancelColumnHeaderEdit(columnId);
+            showError(new Error("Could not find the selected board column. Reload the board and try again."));
+            return false;
+          }
+
+          const nextName = input.value.trim();
+          const error = columnHeaderValidationError(columnId, nextName);
+          if (error) {
+            state.editingColumnValue = input.value;
+            state.editingColumnError = error;
+            input.setAttribute("aria-invalid", "true");
+            showColumnHeaderValidation(error);
+            showError(new Error(error));
+            return false;
+          }
+
+          state.editingColumnValue = nextName;
+          if (nextName === column.name) {
+            finishColumnHeaderEdit(columnId, restoreFocus);
+            return true;
+          }
+
+          const nextConfig = {
+            ...state.config,
+            columns: state.config.columns.map((item) => (
+              item.id === columnId ? { ...item, name: nextName } : item
+            )),
+          };
+          let nextBoard;
+          try {
+            nextBoard = model.reconfigureColumns(state.board, nextConfig.columns);
+          } catch (error) {
+            state.editingColumnError = error.message || String(error);
+            input.setAttribute("aria-invalid", "true");
+            showColumnHeaderValidation(state.editingColumnError);
+            showError(error);
+            return false;
+          }
+
+          beginColumnEdit();
+          state.config = nextConfig;
+          state.board = nextBoard;
+          state.editingColumnId = null;
+          state.editingColumnValue = "";
+          state.editingColumnError = "";
+          clearColumnHeaderValidation();
+          markDirty("board");
+          markDirty("config");
+          renderAll();
+          if (restoreFocus) {
+            focusColumnHeaderButton(columnId);
+          }
+          return true;
+        }
+
+        function cancelColumnHeaderEdit(columnId) {
+          if (state.editingColumnId !== columnId) {
+            return;
+          }
+          finishColumnHeaderEdit(columnId, true);
+        }
+
+        function finishColumnHeaderEdit(columnId, restoreFocus) {
+          state.editingColumnId = null;
+          state.editingColumnValue = "";
+          state.editingColumnError = "";
+          clearColumnHeaderValidation();
+          renderBoard();
+          if (restoreFocus) {
+            focusColumnHeaderButton(columnId);
+          }
+        }
+
+        function focusColumnHeaderButton(columnId) {
+          document.querySelector(
+            `.kanban-column[data-column="${columnId}"] .column-title-edit`,
+          )?.focus();
+        }
+
+        function showColumnHeaderValidation(message) {
+          elements.columnEditValidationMessage.textContent = message;
+          elements.columnEditValidationMessage.hidden = false;
+        }
+
+        function clearColumnHeaderValidation() {
+          elements.columnEditValidationMessage.textContent = "";
+          elements.columnEditValidationMessage.hidden = true;
         }
 
         function createCardElement(card) {

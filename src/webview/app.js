@@ -33,6 +33,9 @@
     currentView: "board",
     mobileColumn: "doing",
     editingCardId: null,
+    editingColumnId: null,
+    editingColumnValue: "",
+    editingColumnError: "",
     draggedCardId: null,
     suppressCardClick: false,
     analytics: null,
@@ -73,6 +76,7 @@
       "columnList", "addColumnButton", "discardColumnChangesButton", "columnsLimitMessage",
       "columnValidationMessage", "columnRemovalDialog", "columnRemovalMessage", "columnRemovalTargetField",
       "columnRemovalTarget", "cancelColumnRemovalButton", "confirmColumnRemovalButton",
+      "columnEditValidationMessage",
       "labelRemovalDialog", "labelRemovalMessage", "cancelLabelRemovalButton", "confirmLabelRemovalButton",
       "statusMessage", "unsavedIndicator", "lastLoadedLabel", "cardDialog", "cardForm",
       "cardDialogEyebrow", "cardDialogTitle", "cardId", "cardTitle", "cardDescription",
@@ -299,6 +303,10 @@
     state.saveQueued = false;
     state.pendingSave = null;
     state.duplicateSources = {};
+    state.editingColumnId = null;
+    state.editingColumnValue = "";
+    state.editingColumnError = "";
+    clearColumnHeaderValidation();
     state.columnEditBaseline = null;
     state.pendingColumnRemoval = null;
     state.pendingLabelRemovalId = null;
@@ -366,6 +374,10 @@
     state.saveInFlight = false;
     state.pendingSave = null;
     state.duplicateSources = {};
+    state.editingColumnId = null;
+    state.editingColumnValue = "";
+    state.editingColumnError = "";
+    clearColumnHeaderValidation();
     elements.kanbanBoard.replaceChildren();
     elements.mobileColumnTabs.replaceChildren();
     elements.kanbanBoard.style.removeProperty("grid-template-columns");
@@ -436,13 +448,87 @@
 
       const header = document.createElement("header");
       header.className = "column-header";
+      header.dataset.editing = String(state.editingColumnId === column.id);
       const index = document.createElement("span");
       index.className = "column-index";
       index.textContent = String(columnIndex + 1).padStart(2, "0");
       const titleBlock = document.createElement("div");
       titleBlock.className = "column-title-block";
       const title = document.createElement("h2");
-      title.textContent = column.label;
+      if (state.editingColumnId === column.id) {
+        const editor = document.createElement("span");
+        editor.className = "column-title-editor";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "column-header-edit";
+        input.value = state.editingColumnValue;
+        input.maxLength = model.MAX_COLUMN_NAME_LENGTH;
+        input.setAttribute("aria-label", `Edit ${column.label} column name`);
+        input.setAttribute("aria-describedby", "columnEditValidationMessage");
+        input.setAttribute("aria-invalid", String(Boolean(state.editingColumnError)));
+        input.addEventListener("input", () => updateColumnHeaderEdit(input, column.id));
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            commitColumnHeaderEdit(input, column.id, { restoreFocus: true });
+          } else if (event.key === "Escape") {
+            event.preventDefault();
+            cancelColumnHeaderEdit(column.id);
+          }
+        });
+        const actions = document.createElement("span");
+        actions.className = "column-edit-actions";
+        const saveButton = document.createElement("button");
+        saveButton.type = "button";
+        saveButton.className = "column-edit-action column-edit-confirm";
+        saveButton.textContent = "✓";
+        saveButton.title = "Save column name";
+        saveButton.setAttribute("aria-label", "Save column name");
+        saveButton.addEventListener("click", () => {
+          commitColumnHeaderEdit(input, column.id, { restoreFocus: true });
+        });
+        const cancelButton = document.createElement("button");
+        cancelButton.type = "button";
+        cancelButton.className = "column-edit-action column-edit-cancel";
+        cancelButton.textContent = "×";
+        cancelButton.title = "Cancel column name edit";
+        cancelButton.setAttribute("aria-label", "Cancel column name edit");
+        cancelButton.addEventListener("click", () => cancelColumnHeaderEdit(column.id));
+        actions.append(saveButton, cancelButton);
+        editor.append(input, actions);
+        editor.addEventListener("focusout", (event) => {
+          const nextTarget = event.relatedTarget;
+          const stayingInsideEditor = nextTarget instanceof Node && editor.contains(nextTarget);
+          if (state.editingColumnId === column.id && !stayingInsideEditor) {
+            commitColumnHeaderEdit(input, column.id);
+          }
+        });
+        title.append(editor);
+        const shortcut = document.createElement("span");
+        shortcut.className = "column-edit-shortcut";
+        shortcut.textContent = "Enter to save · Esc to cancel";
+        shortcut.setAttribute("aria-hidden", "true");
+        titleBlock.append(title, shortcut);
+      } else {
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.className = "column-title-edit";
+        editButton.title = `Edit ${column.label} column name`;
+        editButton.setAttribute("aria-label", `Edit ${column.label} column name`);
+        editButton.addEventListener("click", () => startColumnHeaderEdit(column.id));
+        const label = document.createElement("span");
+        label.className = "column-title-text";
+        label.textContent = column.label;
+        const cue = document.createElement("span");
+        cue.className = "column-edit-cue";
+        cue.setAttribute("aria-hidden", "true");
+        const cueIcon = document.createElement("span");
+        cueIcon.className = "column-edit-cue-icon";
+        cueIcon.textContent = "✎";
+        cue.append(cueIcon);
+        editButton.append(label, cue);
+        title.append(editButton);
+      }
       const description = document.createElement("p");
       description.textContent = `Workflow stage ${columnIndex + 1} of ${state.board.columns.length}`;
       titleBlock.append(title, description);
@@ -494,6 +580,150 @@
     });
 
     updateStats();
+  }
+
+  function startColumnHeaderEdit(columnId) {
+    const column = state.board?.columns.find((item) => item.id === columnId);
+    if (!column) {
+      showError(new Error("Could not find the selected board column. Reload the board and try again."));
+      return;
+    }
+
+    state.editingColumnId = columnId;
+    state.editingColumnValue = column.label;
+    state.editingColumnError = "";
+    clearColumnHeaderValidation();
+    renderBoard();
+    const input = document.querySelector(
+      `.kanban-column[data-column="${columnId}"] .column-header-edit`,
+    );
+    input?.focus();
+    input?.select();
+  }
+
+  function updateColumnHeaderEdit(input, columnId) {
+    if (state.editingColumnId !== columnId) {
+      return;
+    }
+    state.editingColumnValue = input.value;
+    const error = columnHeaderValidationError(columnId, input.value);
+    state.editingColumnError = error;
+    input.setAttribute("aria-invalid", String(Boolean(error)));
+    if (error) {
+      showColumnHeaderValidation(error);
+    } else {
+      clearColumnHeaderValidation();
+    }
+  }
+
+  function columnHeaderValidationError(columnId, value) {
+    const candidate = {
+      ...state.config,
+      columns: state.config.columns.map((column) => (
+        column.id === columnId ? { ...column, name: value } : column
+      )),
+    };
+    try {
+      model.validateConfig(candidate);
+      return "";
+    } catch (error) {
+      return error.message || String(error);
+    }
+  }
+
+  function commitColumnHeaderEdit(input, columnId, { restoreFocus = false } = {}) {
+    if (state.editingColumnId !== columnId) {
+      return true;
+    }
+    const column = state.config.columns.find((item) => item.id === columnId);
+    if (!column) {
+      cancelColumnHeaderEdit(columnId);
+      showError(new Error("Could not find the selected board column. Reload the board and try again."));
+      return false;
+    }
+
+    const nextName = input.value.trim();
+    const error = columnHeaderValidationError(columnId, nextName);
+    if (error) {
+      state.editingColumnValue = input.value;
+      state.editingColumnError = error;
+      input.setAttribute("aria-invalid", "true");
+      showColumnHeaderValidation(error);
+      showError(new Error(error));
+      return false;
+    }
+
+    state.editingColumnValue = nextName;
+    if (nextName === column.name) {
+      finishColumnHeaderEdit(columnId, restoreFocus);
+      return true;
+    }
+
+    const nextConfig = {
+      ...state.config,
+      columns: state.config.columns.map((item) => (
+        item.id === columnId ? { ...item, name: nextName } : item
+      )),
+    };
+    let nextBoard;
+    try {
+      nextBoard = model.reconfigureColumns(state.board, nextConfig.columns);
+    } catch (error) {
+      state.editingColumnError = error.message || String(error);
+      input.setAttribute("aria-invalid", "true");
+      showColumnHeaderValidation(state.editingColumnError);
+      showError(error);
+      return false;
+    }
+
+    beginColumnEdit();
+    state.config = nextConfig;
+    state.board = nextBoard;
+    state.editingColumnId = null;
+    state.editingColumnValue = "";
+    state.editingColumnError = "";
+    clearColumnHeaderValidation();
+    markDirty("board");
+    markDirty("config");
+    renderAll();
+    if (restoreFocus) {
+      focusColumnHeaderButton(columnId);
+    }
+    return true;
+  }
+
+  function cancelColumnHeaderEdit(columnId) {
+    if (state.editingColumnId !== columnId) {
+      return;
+    }
+    finishColumnHeaderEdit(columnId, true);
+  }
+
+  function finishColumnHeaderEdit(columnId, restoreFocus) {
+    state.editingColumnId = null;
+    state.editingColumnValue = "";
+    state.editingColumnError = "";
+    clearColumnHeaderValidation();
+    renderBoard();
+    if (restoreFocus) {
+      focusColumnHeaderButton(columnId);
+    }
+  }
+
+  function focusColumnHeaderButton(columnId) {
+    document.querySelector(
+      `.kanban-column[data-column="${columnId}"] .column-title-edit`,
+    )?.focus();
+  }
+
+  function showColumnHeaderValidation(message) {
+    elements.columnEditValidationMessage.textContent = message;
+    elements.columnEditValidationMessage.hidden = false;
+  }
+
+  function clearColumnHeaderValidation() {
+    elements.columnEditValidationMessage.textContent = "";
+    elements.columnEditValidationMessage.hidden = true;
   }
 
   function createCardElement(card) {
